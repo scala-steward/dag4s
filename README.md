@@ -2,7 +2,9 @@
 
 An experimental DAG library with support for FP scala and its associated FP libraries.
 
-## Usage Example 
+## Usage Example
+
+1. Lazy Evaluation 
 ```scala
   // establish operators
   def read[A](): A
@@ -37,4 +39,21 @@ An experimental DAG library with support for FP scala and its associated FP libr
   // run if needed
   network("output1").getValue()
   network("output2").getValue()
+```
+
+2. Parallel Execution
+
+```scala
+ // build network
+ val futureNetwork = DAGNode.toFutureNetWork(nodes)
+ /**
+  * input1 ---> process1 ---> output1
+  *         |             |
+  *         v             v
+  * input2 ---> process2 ---> output2
+  */
+ 
+ // run if needed
+ futureNetwork("output1").getFuture()
+ futureNetwork("output2").getFuture()
 ```

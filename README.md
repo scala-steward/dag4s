@@ -37,8 +37,8 @@ An experimental DAG library with support for FP scala and its associated FP libr
    */
 
   // run if needed
-  network("output1").getValue()
-  network("output2").getValue()
+  network("output1").get()
+  network("output2").get()
 ```
 
 2. Parallel Execution
@@ -54,6 +54,6 @@ An experimental DAG library with support for FP scala and its associated FP libr
   */
  
  // run if needed
- futureNetwork("output1").getFuture()
- futureNetwork("output2").getFuture()
+ futureNetwork("output1").getValue()
+ futureNetwork("output2").getValue()
 ```

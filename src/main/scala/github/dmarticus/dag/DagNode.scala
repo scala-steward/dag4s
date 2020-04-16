@@ -24,7 +24,7 @@ object DAGNode {
           }
       }
 
-    nodesMap.getValue()
+    nodesMap.get()
   }
 
   def toFutureNetwork[K, V](nodes: Seq[DAGNode[K, V]])
@@ -44,14 +44,18 @@ object DAGNode {
     toLazyNetWork(nodes.map(toFutureNode))
   }
 
-  case class LazyFuture[A](l: LazyNode[Future[A]]) {
+  case class LazyFuture[A](ln: LazyNode[Future[A]]) {
 
     import scala.concurrent.duration._
 
     val TIMEOUT_IN_SECONDS = 10
 
-    def getFuture(timeOut: Int = TIMEOUT_IN_SECONDS): A =
-      Await.result(l.getValue(), timeOut.seconds)
+    def getValue(timeOut: Int = TIMEOUT_IN_SECONDS): A =
+      Await.result(ln.get(), timeOut.seconds)
+  }
+
+  case class LazyNodeOps[A](ln: LazyNode[A]) {
+    def getValue(): A = ln.get()
   }
 
 }

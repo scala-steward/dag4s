@@ -58,7 +58,7 @@ class DagTest extends AnyFunSpec with TestHelpers {
       val network: Map[String, LazyNode[Int]] = DAGNode.toLazyNetWork(nodes)
       assert(network.size === 7)
 
-      network("o1").getValue()
+      network("o1").get()
       assert(records.values().toArray().forall(_ === 1))
       assert(records.size === 4)
       assert(records.containsKey("p2"))
@@ -66,12 +66,12 @@ class DagTest extends AnyFunSpec with TestHelpers {
       assert(records.containsKey("i2"))
       assert(records.containsKey("i3"))
 
-      network("o2").getValue()
+      network("o2").get()
       assert(records.values().toArray().forall(_ === 1))
       assert(records.size === network.size)
 
-      assert(network("p1").getValue() === 2)
-      assert(network("p2").getValue() === 5)
+      assert(network("p1").get() === 2)
+      assert(network("p2").get() === 5)
       assert(records.values().toArray().forall(_ === 1))
     }
   }
@@ -82,9 +82,9 @@ class DagTest extends AnyFunSpec with TestHelpers {
       val nodes = Seq(InputNode("input", () => System.currentTimeMillis()))
       val futureNetwork = DAGNode.toFutureNetwork(nodes)
 
-      val before = futureNetwork("input").getFuture()
+      val before = futureNetwork("input").getValue()
       Thread.sleep(1)
-      val after = futureNetwork("input").getFuture()
+      val after = futureNetwork("input").getValue()
 
       assert(before === after)
     }
@@ -104,7 +104,7 @@ class DagTest extends AnyFunSpec with TestHelpers {
       val futureNetwork = DAGNode.toFutureNetwork(nodes)
 
       assert(
-        futureNetwork("process1").getFuture()
+        futureNetwork("process1").getValue()
           .sortBy(_.start)
           .sliding(2)
           .exists(x => x(1).start < x(0).end))

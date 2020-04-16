@@ -5,6 +5,7 @@ import github.dmarticus.dag.DAGNode.LazyFuture
 import scala.concurrent.Future
 
 case class LazyNode[+A](getValue: () => A) {
+
   import LazyNode._
 
   def map[B](f: A => B): LazyNode[B] = lazyNode(f(getValue()))

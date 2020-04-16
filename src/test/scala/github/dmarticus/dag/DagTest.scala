@@ -1,11 +1,13 @@
 package github.dmarticus.dag
 
-import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.{ConcurrentHashMap, Executors}
 
 import github.dmarticus.dag.common.TestHelpers
 import org.scalatest.funspec.AnyFunSpec
 
-class LazyNodeTest extends AnyFunSpec with TestHelpers {
+import scala.concurrent.ExecutionContext
+
+class DagTest extends AnyFunSpec with TestHelpers {
   describe("For any node of the directed network,") {
     it("is lazy and evaluated only once.") {
       /* ------- records for method execute times --------- */
@@ -75,6 +77,8 @@ class LazyNodeTest extends AnyFunSpec with TestHelpers {
   }
   describe("For lazy evaluation of a concurrent network") {
     it("nodes are only evaluated once") {
+      import scala.concurrent.ExecutionContext.Implicits.global
+
       val nodes = Seq(InputNode("input", () => System.currentTimeMillis()))
       val futureNetwork = DAGNode.toFutureNetwork(nodes)
 
@@ -86,6 +90,7 @@ class LazyNodeTest extends AnyFunSpec with TestHelpers {
     }
 
     it("nodes are executed in parallel") {
+      implicit val ec = ExecutionContext.fromExecutor(Executors.newFixedThreadPool(2))
       // build network
       val input1 = InputNode("input1", read("input1", 0))
       val input2 = InputNode("input2", read("input2", 100))
@@ -106,4 +111,4 @@ class LazyNodeTest extends AnyFunSpec with TestHelpers {
     }
   }
 
-  }
+}

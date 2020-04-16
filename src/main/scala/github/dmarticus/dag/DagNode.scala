@@ -1,10 +1,8 @@
 package github.dmarticus.dag
 
-import LazyNode._
-import cats.syntax.compose
+import github.dmarticus.dag.LazyNode._
 
-import scala.concurrent.{Await, Future}
-import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.{Await, ExecutionContext, Future}
 
 sealed trait DAGNode[K, V] {
   def name: K
@@ -29,22 +27,25 @@ object DAGNode {
     nodesMap.getValue()
   }
 
-  def toFutureNetwork[K, V](nodes: Seq[DAGNode[K,V]]): Map[K, LazyNode[Future[V]]] = {
-    def toFutureNode(node: DAGNode[K,V]): DAGNode[K, Future[V]] = {
+  def toFutureNetwork[K, V](nodes: Seq[DAGNode[K, V]])
+                           (implicit executor: ExecutionContext): Map[K, LazyNode[Future[V]]] = {
+    def toFutureNode(node: DAGNode[K, V]): DAGNode[K, Future[V]] = {
       node match {
         case InputNode(k, f) =>
           // TODO use Kleisli to compose f with future.apply
-          val futureF = () => Future(f())
+          val futureF = () => Future(f())(executor)
           InputNode(k, futureF)
         case InternalNode(k, deps, f) =>
-          val futureF = (xs: Seq[Future[V]]) => Future.sequence(xs).map(f)
+          val futureF = (xs: Seq[Future[V]]) => Future.sequence(xs)(implicitly, executor).map(f)
           InternalNode(k, deps, futureF)
       }
     }
+
     toLazyNetWork(nodes.map(toFutureNode))
   }
 
   case class LazyFuture[A](l: LazyNode[Future[A]]) {
+
     import scala.concurrent.duration._
 
     val TIMEOUT_IN_SECONDS = 10
@@ -52,15 +53,16 @@ object DAGNode {
     def getFuture(timeOut: Int = TIMEOUT_IN_SECONDS): A =
       Await.result(l.getValue(), timeOut.seconds)
   }
+
 }
 
 case class InputNode[K, V](override val name: K, mapImpl: () => V)
-    extends DAGNode[K, V]
+  extends DAGNode[K, V]
 
 private case class InternalNode[K, V](override val name: K,
                                       depends: Seq[K],
                                       reduceImpl: Seq[V] => V)
-    extends DAGNode[K, V]
+  extends DAGNode[K, V]
 
 object ProcessNode {
   def apply[K, V](name: K,
@@ -76,7 +78,9 @@ object OutputNode {
   def apply[K, V](name: K,
                   depends: Seq[K],
                   reduceImpl: Seq[V] => Unit): DAGNode[K, V] =
-    InternalNode(name, depends, (ss: Seq[V]) => { reduceImpl(ss); ss.head })
+    InternalNode(name, depends, (ss: Seq[V]) => {
+      reduceImpl(ss); ss.head
+    })
 
   def apply[K, V](name: K, dependencies: K, mapImpl: V => Unit): DAGNode[K, V] =
     apply(name, Seq(dependencies), (ss: Seq[V]) => mapImpl(ss.head))

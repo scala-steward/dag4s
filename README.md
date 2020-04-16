@@ -20,7 +20,7 @@ An experimental DAG library with support for FP scala and its associated FP libr
   
   // ProcessNode(uid, dependencyUids, function)
   val internalNode1 = ProcessNode("process1", "input1", process1)
-  val internalNode2 = ProcessNode("process2", Seq("input1", "input2") process2)
+  val internalNode2 = ProcessNode("process2", Seq("input1", "input2"), process2)
   
   // OutputNode(uid, dependencyUids, function)
   val outputNode1 = OutputNode("output1", "process1", write1)

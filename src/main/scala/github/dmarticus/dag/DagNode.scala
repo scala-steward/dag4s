@@ -1,6 +1,10 @@
 package github.dmarticus.dag
 
 import LazyNode._
+import cats.syntax.compose
+
+import scala.concurrent.{Await, Future}
+import scala.concurrent.ExecutionContext.Implicits.global
 
 sealed trait DAGNode[K, V] {
   def name: K
@@ -23,6 +27,30 @@ object DAGNode {
       }
 
     nodesMap.getValue()
+  }
+
+  def toFutureNetwork[K, V](nodes: Seq[DAGNode[K,V]]): Map[K, LazyNode[Future[V]]] = {
+    def toFutureNode(node: DAGNode[K,V]): DAGNode[K, Future[V]] = {
+      node match {
+        case InputNode(k, f) =>
+          // TODO use Kleisli to compose f with future.apply
+          val futureF = () => Future(f())
+          InputNode(k, futureF)
+        case InternalNode(k, deps, f) =>
+          val futureF = (xs: Seq[Future[V]]) => Future.sequence(xs).map(f)
+          InternalNode(k, deps, futureF)
+      }
+    }
+    toLazyNetWork(nodes.map(toFutureNode))
+  }
+
+  case class LazyFuture[A](l: LazyNode[Future[A]]) {
+    import scala.concurrent.duration._
+
+    val TIMEOUT_IN_SECONDS = 10
+
+    def getFuture(timeOut: Int = TIMEOUT_IN_SECONDS): A =
+      Await.result(l.getValue(), timeOut.seconds)
   }
 }
 

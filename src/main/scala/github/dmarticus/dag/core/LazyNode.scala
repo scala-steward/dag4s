@@ -1,11 +1,6 @@
-package github.dmarticus.dag
-
-import github.dmarticus.dag.DAGNode.{LazyFuture, LazyNodeOps}
-
-import scala.concurrent.Future
+package github.dmarticus.dag.core
 
 case class LazyNode[+A](get: () => A) {
-
   import LazyNode._
 
   def map[B](f: A => B): LazyNode[B] = lazyNode(f(get()))
@@ -25,10 +20,5 @@ object LazyNode {
     LazyNode(() => value)
   }
 
-  def sequence[A](as: Seq[LazyNode[A]]): LazyNode[Seq[A]] =
-    lazyNode(as.map(_.get()))
-
-  implicit def asLazyFuture[A](ln: LazyNode[Future[A]]): LazyFuture[A] = LazyFuture(ln)
-
-  implicit def asLazyNodeOps[A](l: LazyNode[A]): LazyNodeOps[A] = LazyNodeOps(l)
+  def sequence[A](as: Seq[LazyNode[A]]): LazyNode[Seq[A]] = lazyNode(as.map(_.get()))
 }

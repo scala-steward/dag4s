@@ -24,7 +24,7 @@ name := "dag4s"
 organization := "dmarticus"
 version := "0.0.1"
 
-libraryDependencies += "org.typelevel" %% "cats-core" % "2.1.1"
+libraryDependencies += "org.typelevel" %% "cats-core" % "2.2.0"
 libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.2"
 
 // Create a test Scala style task to run with tests

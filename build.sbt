@@ -25,7 +25,7 @@ organization := "dmarticus"
 version := "0.0.1"
 
 libraryDependencies += "org.typelevel" %% "cats-core" % "2.2.0"
-libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.2"
+libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.3"
 
 // Create a test Scala style task to run with tests
 lazy val testScalastyle = taskKey[Unit]("testScalastyle")
